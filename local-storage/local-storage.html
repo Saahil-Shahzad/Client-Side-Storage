@@ -10,8 +10,10 @@
 <body>
     <p><a href="../index.html">&larr;Go Back</a></p>
 
+    <p id="welcomeMsg"></p>
+
     <!-- input field for username -->
-     <h1>Enter Name and Select Theme:</h1>
+    <h1>Enter Name and Select Theme:</h1>
     <input type="text" id="name" placeholder="Your Name">
 
     <!-- color picker for theme color -->
@@ -22,6 +24,52 @@
 
     <!-- button to clear data -->
     <button id="clearBtn">Clear Data</button>
+
+    <script>
+        const nameInput = document.getElementById("name");
+        const colorInput = document.getElementById("color");
+        const saveBtn = document.getElementById("saveBtn");
+        const clearBtn = document.getElementById("clearBtn");
+
+        // loading saved data when page loads
+        window.onload = function () {
+            const savedName = localStorage.getItem("userName");
+            const savedColor = localStorage.getItem("themeColor");
+
+            if (savedName) {
+                nameInput.value = savedName;
+                document.getElementById("welcomeMsg").innerHTML = "Welcome back! " + savedName;
+            }
+
+            if (savedColor) {
+                colorInput.value = savedColor;
+                document.body.style.backgroundColor = savedColor;
+            }
+        };
+
+        // saving data when "Save" button is clicked
+        saveBtn.onclick = function () {
+            localStorage.setItem("userName", nameInput.value);
+            localStorage.setItem("themeColor", colorInput.value);
+            if (nameInput.value) {
+                document.getElementById("welcomeMsg").innerHTML = "Welcome back! " + nameInput.value;
+            }
+            document.body.style.backgroundColor = colorInput.value;
+            alert("Preferences saved!");
+        };
+
+        // clearing saved data
+        clearBtn.onclick = function () {
+            localStorage.removeItem("userName");
+            localStorage.removeItem("themeColor");
+            nameInput.value = "";
+            colorInput.value = "#ffffff";
+            document.body.style.backgroundColor = "white";
+            document.getElementById("welcomeMsg").innerHTML = "";
+            alert("Data cleared!");
+        };
+    </script>
+
 </body>
 
 </html>

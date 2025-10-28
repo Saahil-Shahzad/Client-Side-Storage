@@ -11,8 +11,24 @@
     <p><a href="../index.html">&larr;Go Back</a></p>
 
     <!-- text input for quote -->
-     <h1>Enter Quote:</h1>
-     <input type="text" id="quote" placeholder="Enter quote here">
+    <h1>Enter Quote:</h1>
+    <input type="text" id="quote" placeholder="Enter quote here">
+
+    <script>
+        const quoteInput = document.getElementById("quote");
+
+        // loading the quote on refresh
+        window.onload = function () {
+            const savedQuote = sessionStorage.getItem("userQuote");
+            if (savedQuote) quoteInput.value = savedQuote;
+        };
+
+        // saving whenever user types
+        quoteInput.addEventListener("input", () => {
+            sessionStorage.setItem("userQuote", quoteInput.value);
+        });
+    </script>
+
 </body>
 
 </html>

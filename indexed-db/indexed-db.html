@@ -15,16 +15,115 @@
     <input type="text" id="task" placeholder="Your task">
 
     <!-- button to add the task -->
-    <button>Add</button>
+    <button id="addBtn">Add</button>
 
     <!-- button to clear the object store -->
-    <button>Delete All</button>
+    <button id="deleteAllBtn">Delete All</button>
 
     <!-- list to display tasks -->
     <h1>Tasks List:</h1>
 
-    <ol>
+    <ol id="taskList">
     </ol>
+
+    <script>
+        const addBtn = document.getElementById("addBtn");
+        const deleteAllBtn = document.getElementById("deleteAllBtn");
+        const taskInput = document.getElementById("task");
+        const taskList = document.getElementById("taskList");
+
+        let db;
+
+        // opening (or creating) IndexedDB
+        const request = indexedDB.open("TaskDB", 1);
+
+        // called only if DB is new or version increases
+        request.onupgradeneeded = function (event) {
+            db = event.target.result;
+            const store = db.createObjectStore("tasks", { keyPath: "id", autoIncrement: true });
+            store.createIndex("completedIndex", "completed", { unique: false });
+        };
+
+        // when successfully opened
+        request.onsuccess = function (event) {
+            db = event.target.result;
+            showTasks(); // loading tasks on startup
+        };
+
+        request.onerror = function (event) {
+            console.error("Error opening database:", event.target.error);
+        };
+
+        // adding a task
+        addBtn.onclick = function () {
+            const taskText = taskInput.value.trim();
+            if (!taskText) return;
+
+            const transaction = db.transaction(["tasks"], "readwrite");
+            const store = transaction.objectStore("tasks");
+            store.add({ text: taskText, completed: false });
+
+            transaction.oncomplete = function () {
+                taskInput.value = "";
+                showTasks();
+            };
+        };
+
+        // showing tasks
+        function showTasks() {
+            taskList.innerHTML = "";
+            const transaction = db.transaction(["tasks"], "readonly");
+            const store = transaction.objectStore("tasks");
+            const request = store.openCursor();
+
+            request.onsuccess = function (event) {
+                const cursor = event.target.result;
+                if (cursor) {
+                    const li = document.createElement("li");
+                    li.textContent = cursor.value.text;
+
+                    if (cursor.value.completed) {
+                        li.style.textDecoration = "line-through";
+                    }
+
+                    const completeBtn = document.createElement("button");
+                    completeBtn.textContent = "Mark Completed";
+                    
+                    const key = cursor.key;
+                    completeBtn.onclick = function () {
+                        markAsCompleted(key);
+                    };
+
+                    li.appendChild(completeBtn);
+                    taskList.appendChild(li);
+                    cursor.continue();
+                }
+            };
+        }
+
+        // marking a task as completed
+        function markAsCompleted(id) {
+            const transaction = db.transaction(["tasks"], "readwrite");
+            const store = transaction.objectStore("tasks");
+            const getReq = store.get(id);
+
+            getReq.onsuccess = function () {
+                const task = getReq.result;
+                task.completed = true;
+                store.put(task);
+                showTasks();
+            };
+        }
+
+        // deleting all tasks
+        deleteAllBtn.onclick = function () {
+            const transaction = db.transaction(["tasks"], "readwrite");
+            const store = transaction.objectStore("tasks");
+            store.clear();
+            transaction.oncomplete = showTasks;
+        };
+    </script>
+
 </body>
 
 </html>
